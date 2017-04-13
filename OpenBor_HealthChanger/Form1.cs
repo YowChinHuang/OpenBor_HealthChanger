@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace OpenBor_HealthChanger {
     public partial class frmMain : Form {
@@ -31,19 +33,60 @@ namespace OpenBor_HealthChanger {
             foreach (string file in files) {
 
                 if ((File.GetAttributes(file) & FileAttributes.Directory) == FileAttributes.Directory) {
-                    DirectoryInfo DI = new DirectoryInfo(file);
-
-                    foreach (FileInfo fileindirs in DI.GetFiles("*.txt", SearchOption.AllDirectories)) {
-                        if (ProcessFile(fileindirs.FullName) == true) {
-                            lstFile.Items.Add(fileindirs.FullName);
-                            lstFile.SelectedIndex = lstFile.Items.Count - 1;
-                        }
-                        Application.DoEvents();
-                    }
-                    DI = null;
+                    ProcessDir(file);
                 } else {
 
-                    if (Path.GetExtension(file).ToLower().Equals(".txt") == true) {
+                    if (Path.GetExtension(file).ToLower().Equals(".pak") == true) {
+                        Boolean Createborpak = false;
+
+                        if (File.Exists("borpak.exe") == false) {
+                            Stream borpak = Assembly.GetExecutingAssembly().GetManifestResourceStream("OpenBor_HealthChanger.borpak.exe");
+                            byte[] res = new byte[borpak.Length];
+                            borpak.Read(res, 0, res.Length);
+
+                            File.WriteAllBytes("borpak.exe", res);
+                            Createborpak = true;
+                            res = null;
+                            borpak = null;
+                        }
+
+                        //Extract PAK
+                        Process BORPAK = new Process();
+                        BORPAK.StartInfo.FileName = "borpak.exe";
+                        BORPAK.StartInfo.UseShellExecute = false;
+                        BORPAK.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        BORPAK.StartInfo.RedirectStandardOutput = true;
+                        BORPAK.StartInfo.CreateNoWindow = true;
+                        BORPAK.StartInfo.Arguments = "\"" + file + "\"";
+                        BORPAK.Start();
+                        while (!BORPAK.HasExited) {
+                            lstFile.Items.Add(BORPAK.StandardOutput.ReadLine());
+                            lstFile.SelectedIndex = lstFile.Items.Count - 1;
+                            Application.DoEvents();
+                        }
+
+                        //Process
+                        lstFile.Items.Add("========================================");
+                        lstFile.Items.Add("Processing Files!");
+                        String newPath = Path.GetDirectoryName(file);
+                        ProcessDir(newPath + "\\data\\");
+                        File.Move(file, file + String.Format("{0:.yyyyMMddHHmmssffff}", DateTime.Now));
+
+                        //Create PAK
+                        lstFile.Items.Add("========================================");
+                        lstFile.Items.Add("Packing Files!");
+                        BORPAK.StartInfo.Arguments = "-b -d data \"" + file + "\"";
+                        BORPAK.Start();
+                        while (!BORPAK.HasExited) {
+                            lstFile.Items.Add(BORPAK.StandardOutput.ReadLine());
+                            lstFile.SelectedIndex = lstFile.Items.Count - 1;
+                            Application.DoEvents();
+                        }
+                        Directory.Delete(newPath + "\\data\\", true);
+                        if (Createborpak == true) {
+                            File.Delete("borpak.exe");
+                        }
+                    } else if (Path.GetExtension(file).ToLower().Equals(".txt") == true) {
                         if (ProcessFile(file) == true) {
                             lstFile.Items.Add(file);
                             lstFile.SelectedIndex = lstFile.Items.Count - 1;
@@ -63,6 +106,19 @@ namespace OpenBor_HealthChanger {
             if (ProcessFinish == true) {
                 lblPanel.Visible = true;
             }
+        }
+
+        void ProcessDir(string Path) {
+            DirectoryInfo DI = new DirectoryInfo(Path);
+
+            foreach (FileInfo fileindirs in DI.GetFiles("*.txt", SearchOption.AllDirectories)) {
+                if (ProcessFile(fileindirs.FullName) == true) {
+                    lstFile.Items.Add(fileindirs.FullName);
+                    lstFile.SelectedIndex = lstFile.Items.Count - 1;
+                }
+                Application.DoEvents();
+            }
+            DI = null;
         }
 
         Boolean ProcessFile(String filename) {

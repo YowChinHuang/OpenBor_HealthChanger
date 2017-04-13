@@ -37,7 +37,7 @@
             this.lblPanel.Name = "lblPanel";
             this.lblPanel.Size = new System.Drawing.Size(389, 273);
             this.lblPanel.TabIndex = 0;
-            this.lblPanel.Text = "Drop OpenBor Game Files or Dirs";
+            this.lblPanel.Text = "Drop OpenBor Game Files (PAK or TXT) or data Directory";
             this.lblPanel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.lblPanel.DragDrop += new System.Windows.Forms.DragEventHandler(this.lblPanel_DragDrop);
             this.lblPanel.DragEnter += new System.Windows.Forms.DragEventHandler(this.lblPanel_DragEnter);
