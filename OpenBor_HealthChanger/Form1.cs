@@ -38,13 +38,23 @@ namespace OpenBor_HealthChanger {
 
                     if (Path.GetExtension(file).ToLower().Equals(".pak") == true) {
                         Boolean Createborpak = false;
+                        String newPath = Path.GetDirectoryName(file);
+                        string BorpakExE = "borpak.exe";
 
-                        if (File.Exists("borpak.exe") == false) {
+                        if (newPath.Equals(Application.StartupPath) == false) {
+                            lstFile.Items.Add("========================================");
+                            lstFile.Items.Add("PAK file must at same directory!");
+                            lstFile.Items.Add("Double Click to Finish!");
+                            lstFile.SelectedIndex = lstFile.Items.Count - 1;
+                            return;
+                        }
+
+                        if (File.Exists(BorpakExE) == false) {
                             Stream borpak = Assembly.GetExecutingAssembly().GetManifestResourceStream("OpenBor_HealthChanger.borpak.exe");
                             byte[] res = new byte[borpak.Length];
                             borpak.Read(res, 0, res.Length);
 
-                            File.WriteAllBytes("borpak.exe", res);
+                            File.WriteAllBytes(BorpakExE, res);
                             Createborpak = true;
                             res = null;
                             borpak = null;
@@ -52,12 +62,12 @@ namespace OpenBor_HealthChanger {
 
                         //Extract PAK
                         Process BORPAK = new Process();
-                        BORPAK.StartInfo.FileName = "borpak.exe";
+                        BORPAK.StartInfo.FileName = BorpakExE;
                         BORPAK.StartInfo.UseShellExecute = false;
                         BORPAK.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                         BORPAK.StartInfo.RedirectStandardOutput = true;
                         BORPAK.StartInfo.CreateNoWindow = true;
-                        BORPAK.StartInfo.Arguments = "\"" + file + "\"";
+                        BORPAK.StartInfo.Arguments = "-d \"" + newPath + "\" \"" + file + "\"";
                         BORPAK.Start();
                         while (!BORPAK.HasExited) {
                             lstFile.Items.Add(BORPAK.StandardOutput.ReadLine());
@@ -68,7 +78,6 @@ namespace OpenBor_HealthChanger {
                         //Process
                         lstFile.Items.Add("========================================");
                         lstFile.Items.Add("Processing Files!");
-                        String newPath = Path.GetDirectoryName(file);
                         ProcessDir(newPath + "\\data\\");
                         File.Move(file, file + String.Format("{0:.yyyyMMddHHmmssffff}", DateTime.Now));
 
@@ -84,7 +93,7 @@ namespace OpenBor_HealthChanger {
                         }
                         Directory.Delete(newPath + "\\data\\", true);
                         if (Createborpak == true) {
-                            File.Delete("borpak.exe");
+                            File.Delete(BorpakExE);
                         }
                     } else if (Path.GetExtension(file).ToLower().Equals(".txt") == true) {
                         if (ProcessFile(file) == true) {
