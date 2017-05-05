@@ -159,7 +159,11 @@ namespace OpenBor_HealthChanger {
                     if ((lines[i].IndexOf("health", StringComparison.CurrentCultureIgnoreCase) != -1) && (lines[i].StartsWith("#") == false)) {
                         string OldVal = lines[i].ToLower().Replace("health", "").Trim();
 
-                        lines[i] = lines[i].Replace(OldVal, "1");
+                        if (OldVal.Length == 0) {
+                            lines[i] = lines[i] + " 1";
+                        } else {
+                            lines[i] = lines[i].Replace(OldVal, "1");
+                        }
                         DataChanged = true;
                     }
                 }
