@@ -39,7 +39,7 @@ namespace OpenBor_HealthChanger {
                     if (Path.GetExtension(file).ToLower().Equals(".pak") == true) {
                         Boolean Createborpak = false;
                         String newPath = Path.GetDirectoryName(file);
-                        string BorpakExE = "borpak.exe";
+                        string BorpakExE = "borpak.exe";        //File Size:35890
 
                         if (newPath.Equals(Application.StartupPath) == false) {
                             lstFile.Items.Add("========================================");
@@ -69,7 +69,8 @@ namespace OpenBor_HealthChanger {
                         BORPAK.StartInfo.CreateNoWindow = true;
                         BORPAK.StartInfo.Arguments = "-d \"" + newPath + "\" \"" + file + "\"";
                         BORPAK.Start();
-                        while (!BORPAK.HasExited) {
+                        while (!BORPAK.HasExited)
+                        {
                             lstFile.Items.Add(BORPAK.StandardOutput.ReadLine());
                             lstFile.SelectedIndex = lstFile.Items.Count - 1;
                             Application.DoEvents();
